@@ -1,0 +1,21 @@
+# Byte-compiled / cache
+__pycache__/
+
+# virtualenv
+venv/
+.env
+
+# Python
+*.py[cod]
+*$py.class
+
+# Pytest
+.cache/
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
