@@ -17,6 +17,200 @@ class FileTool:
     def __init__(self, base_path: Union[str, Path] = "."):
         self.base = Path(base_path).resolve()
 
+    def get_tool_schemas(self):
+        """Returns JSON schemas for OpenAI function calling."""
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": "list_files",
+                    "description": "List files and folders in the given path (relative to the base directory).",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {
+                                "type": "string",
+                                "description": "The directory path to list files from. Defaults to the current directory."
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "create_folder",
+                    "description": "Create a folder and any missing parents.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {
+                                "type": "string",
+                                "description": "The path of the folder to create."
+                            }
+                        },
+                        "required": ["path"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "create_file",
+                    "description": "Create an empty file.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {
+                                "type": "string",
+                                "description": "The path of the file to create."
+                            }
+                        },
+                        "required": ["path"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "description": "Display contents of a file.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {
+                                "type": "string",
+                                "description": "The path of the file to read."
+                            }
+                        },
+                        "required": ["path"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "write_file",
+                    "description": "Overwrite a file with text. If the file or parents do not exist, they will be created.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {
+                                "type": "string",
+                                "description": "The path of the file to write to."
+                            },
+                            "content": {
+                                "type": "string",
+                                "description": "The text content to write into the file."
+                            }
+                        },
+                        "required": ["path", "content"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "append_file",
+                    "description": "Append text to a file.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {
+                                "type": "string",
+                                "description": "The path of the file to append to."
+                            },
+                            "content": {
+                                "type": "string",
+                                "description": "The text content to append into the file."
+                            }
+                        },
+                        "required": ["path", "content"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "rename",
+                    "description": "Rename a file or folder inside the working directory.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "old_path": {
+                                "type": "string",
+                                "description": "The current path of the file or folder."
+                            },
+                            "new_path": {
+                                "type": "string",
+                                "description": "The new path for the file or folder."
+                            }
+                        },
+                        "required": ["old_path", "new_path"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "move",
+                    "description": "Move a file or folder.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "old_path": {
+                                "type": "string",
+                                "description": "The current path of the file or folder."
+                            },
+                            "new_path": {
+                                "type": "string",
+                                "description": "The destination path for the file or folder."
+                            }
+                        },
+                        "required": ["old_path", "new_path"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "copy",
+                    "description": "Copy a file or folder. Copying directories requires the destination to not already exist.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "source": {
+                                "type": "string",
+                                "description": "The path of the file or folder to copy."
+                            },
+                            "destination": {
+                                "type": "string",
+                                "description": "The destination path to copy to."
+                            }
+                        },
+                        "required": ["source", "destination"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "delete",
+                    "description": "Delete a file or folder (recursively for folders).",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {
+                                "type": "string",
+                                "description": "The path of the file or folder to delete."
+                            }
+                        },
+                        "required": ["path"]
+                    }
+                }
+            }
+        ]
+
     def _resolve(self, path: Union[str, Path]) -> Path:
         p = (self.base / Path(path)).resolve()
         try:
