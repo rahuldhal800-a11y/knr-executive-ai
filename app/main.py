@@ -5,7 +5,6 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.markdown import Markdown
 
-from app.orchestrator import MultiAgentOrchestrator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -52,10 +51,10 @@ def main_loop():
         print_info("Please set it before using the AI.")
         return
 
-    orchestrator = MultiAgentOrchestrator(str(Path.cwd()))
-
     print_banner()
     print_help()
+
+    orchestrator = None
 
     while True:
         try:
@@ -79,6 +78,11 @@ def main_loop():
 
         try:
             with console.status("[bold yellow]AI is thinking (and possibly using tools)...[/bold yellow]", spinner="dots"):
+                if orchestrator is None:
+                    # Lazy load heavy dependencies to improve startup time
+                    from app.orchestrator import MultiAgentOrchestrator
+                    orchestrator = MultiAgentOrchestrator(str(Path.cwd()))
+
                 response = orchestrator.process_request(raw)
 
             console.print(Panel(Markdown(response), title="AI", border_style="green"))
