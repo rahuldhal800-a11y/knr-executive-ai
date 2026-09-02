@@ -4,6 +4,9 @@ from app.agent import Agent
 from app.tools.file_tool import FileTool
 from app.tools.search_tool import SearchTool
 from app.tools.memory_tool import MemoryTool
+from app.tools.sales_tool import SalesTool
+from app.tools.code_tool import CodeTool
+from app.tools.scrape_tool import ScrapeTool
 
 class CompositeToolHandler:
     """A helper class to delegate tool calls to multiple tool instances."""
@@ -25,10 +28,27 @@ class MultiAgentOrchestrator:
         self.file_tool = FileTool(Path(base_path))
         self.search_tool = SearchTool()
         self.memory_tool = MemoryTool(db_path=str(Path(base_path) / ".chroma_db"))
+        self.sales_tool = SalesTool()
+        self.code_tool = CodeTool()
+        self.scrape_tool = ScrapeTool()
 
         # Combine all tools for the manager
-        self.manager_tools = self.file_tool.get_tool_schemas() + self.search_tool.get_tool_schemas() + self.memory_tool.get_tool_schemas()
-        self.manager_tool_handler = CompositeToolHandler([self.file_tool, self.search_tool, self.memory_tool])
+        self.manager_tools = (
+            self.file_tool.get_tool_schemas() +
+            self.search_tool.get_tool_schemas() +
+            self.memory_tool.get_tool_schemas() +
+            self.sales_tool.get_tool_schemas() +
+            self.code_tool.get_tool_schemas() +
+            self.scrape_tool.get_tool_schemas()
+        )
+        self.manager_tool_handler = CompositeToolHandler([
+            self.file_tool,
+            self.search_tool,
+            self.memory_tool,
+            self.sales_tool,
+            self.code_tool,
+            self.scrape_tool
+        ])
 
         # Define File System Agent
         fs_system_prompt = (
@@ -47,10 +67,13 @@ class MultiAgentOrchestrator:
 
         # Define Manager Agent
         manager_system_prompt = (
-            "You are the Manager Agent for KNR Executive AI. "
-            "Your job is to understand the user's high-level goal and solve it. "
-            "You have direct access to file system operations, web search, and a long-term memory store through your tools. "
-            "Analyze the problem, use your tools (like web_search for current info, save_memory to learn/remember, or file tools) to accomplish the task, and provide a clear and concise final answer to the user."
+            "You are the KNR Integrity Central Brain, a highly advanced, multi-agent AI automation capacity system. "
+            "You are NOT a normal AI; you are the core intelligence driving real estate sales and operations for KNR. "
+            "Your job is to understand high-level goals, qualify and score leads, draft communications, perform web research, "
+            "scrape websites, execute dynamic Python code, and manage files and memories autonomously. "
+            "You have direct access to file system operations, web search, scraping, code execution, long-term memory store, and specialized sales tools. "
+            "Analyze problems, proactively use your tools (like execute_code, scrape_url, score_lead, draft_follow_up, web_search, save_memory) to accomplish tasks, "
+            "and provide clear, strategic, and concise final answers to the user. Always think like the most advanced real estate brain."
         )
         self.manager_agent = Agent(
             name="ManagerAgent",

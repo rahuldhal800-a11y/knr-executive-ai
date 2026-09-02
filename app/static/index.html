@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNR Central Brain</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        #chat-container { width: 100%; max-width: 800px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 85vh; }
+        #header { padding: 15px 20px; background: #2c3e50; color: white; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        #header h2 { margin: 0; font-size: 1.2rem; }
+        #controls select { padding: 5px; border-radius: 4px; border: none; }
+        #chat-history { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { padding: 12px 15px; border-radius: 6px; max-width: 80%; line-height: 1.4; word-wrap: break-word; }
+        .message.user { background: #3498db; color: white; align-self: flex-end; }
+        .message.ai { background: #ecf0f1; color: #2c3e50; align-self: flex-start; }
+        #input-area { padding: 15px; border-top: 1px solid #ddd; display: flex; gap: 10px; background: #fafafa; border-radius: 0 0 8px 8px; }
+        #text-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        #send-btn { background: #2ecc71; color: white; }
+        #mic-btn { background: #e74c3c; color: white; }
+        #video-btn { background: #9b59b6; color: white; }
+        #mic-btn.recording, #video-btn.recording { animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        #video-container { display: none; margin-bottom: 10px; width: 100%; border-radius: 8px; overflow: hidden; background: black; }
+        #local-video { width: 100%; max-height: 200px; object-fit: cover; }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="header">
+            <h2>🧠 KNR Central Brain</h2>
+            <div id="controls">
+                <select id="provider">
+                    <option value="openrouter">OpenRouter (Free)</option>
+                    <option value="groq">Groq</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="mistral">Mistral</option>
+                    <option value="deepseek">DeepSeek</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="video-container">
+            <video id="local-video" autoplay muted playsinline></video>
+        </div>
+
+        <div id="chat-history">
+            <div class="message ai">Hello! I am the KNR Central Brain. You can type, speak, or stream video to me. What would you like me to do today?</div>
+        </div>
+        <div id="input-area">
+            <button id="video-btn">📹</button>
+            <button id="mic-btn">🎤</button>
+            <input type="text" id="text-input" placeholder="Type your message here..." autocomplete="off">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const textInput = document.getElementById('text-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const videoBtn = document.getElementById('video-btn');
+        const videoContainer = document.getElementById('video-container');
+        const localVideo = document.getElementById('local-video');
+        const providerSelect = document.getElementById('provider');
+
+        // Video Stream Setup
+        let mediaStream = null;
+        videoBtn.addEventListener('click', async () => {
+            if (mediaStream) {
+                // Stop the stream
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+                videoContainer.style.display = 'none';
+                videoBtn.classList.remove('recording');
+            } else {
+                // Start the stream
+                try {
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    localVideo.srcObject = mediaStream;
+                    videoContainer.style.display = 'block';
+                    videoBtn.classList.add('recording');
+                } catch (err) {
+                    console.error("Error accessing camera:", err);
+                    alert("Could not access the camera. Make sure permissions are granted.");
+                }
+            }
+        });
+
+        // Speech Recognition Setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                textInput.value = transcript;
+                sendMessage();
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove('recording');
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error", event.error);
+                micBtn.classList.remove('recording');
+            };
+        } else {
+            micBtn.style.display = 'none';
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (recognition) {
+                micBtn.classList.add('recording');
+                recognition.start();
+            }
+        });
+
+        // Speech Synthesis Setup (Voice Output)
+        const synth = window.speechSynthesis;
+        function speakText(text) {
+            // Strip emojis and markdown for speech
+            const cleanText = text.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
+                                  .replace(/[#*`_]/g, '');
+            const utterThis = new SpeechSynthesisUtterance(cleanText);
+            synth.speak(utterThis);
+        }
+
+        function appendMessage(text, sender) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            // Simple markdown rendering (newlines to br)
+            div.innerHTML = text.replace(/\n/g, '<br>');
+            chatHistory.appendChild(div);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = textInput.value.trim();
+            if (!message) return;
+
+            const provider = providerSelect.value;
+
+            appendMessage(message, 'user');
+            textInput.value = '';
+
+            // Show loading
+            const loadingId = 'msg-' + Date.now();
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message ai';
+            loadingDiv.id = loadingId;
+            loadingDiv.innerText = 'Thinking... (running agents)';
+            chatHistory.appendChild(loadingDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, provider })
+                });
+
+                const data = await response.json();
+                document.getElementById(loadingId).remove();
+
+                if (data.ok) {
+                    appendMessage(data.response, 'ai');
+                    speakText(data.response);
+                } else {
+                    appendMessage(`Error: ${data.error}`, 'ai');
+                }
+            } catch (err) {
+                document.getElementById(loadingId).remove();
+                appendMessage(`Connection Error: ${err.message}`, 'ai');
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
