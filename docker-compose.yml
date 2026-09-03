@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  knr_brain:
+    build: .
+    container_name: knr_central_brain
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount a local directory to persist the ChromaDB knowledge base across container restarts
+      - ./chroma_data:/app/.chroma_db
+    env_file:
+      - .env
+    environment:
+      # Optional overrides can go here
+      - ALLOWED_ORIGINS=http://localhost:3000,https://crm.knrintegrity.com
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

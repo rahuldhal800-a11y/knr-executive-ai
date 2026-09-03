@@ -1,5 +1,8 @@
 import json
+import logging
 from typing import List, Dict, Any, Optional
+
+logger = logging.getLogger("knr_agent")
 
 class Agent:
     def __init__(self, name: str, llm_client: Any, system_prompt: str, tools: Optional[List[Dict[str, Any]]] = None, tool_handler: Optional[Any] = None):
@@ -33,7 +36,7 @@ class Agent:
                 func_name = tool_call.function.name
                 func_args = json.loads(tool_call.function.arguments)
 
-                print(f"[Agent {self.name}] Executing tool '{func_name}' with args: {func_args}")
+                logger.info(f"[Agent {self.name}] Executing tool '{func_name}' with args: {func_args}")
 
                 try:
                     # Dynamically call the method on the tool handler
@@ -43,6 +46,7 @@ class Agent:
                     else:
                         result = {"ok": False, "message": f"Tool '{func_name}' not found on handler."}
                 except Exception as e:
+                    logger.error(f"Error executing tool '{func_name}': {str(e)}")
                     result = {"ok": False, "message": f"Error executing '{func_name}': {str(e)}"}
 
                 self.messages.append({

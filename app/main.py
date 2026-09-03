@@ -47,8 +47,8 @@ def print_error(msg: str):
 
 def main_loop():
     # Setup OpenAI key check
-    if not os.getenv("OPENAI_API_KEY"):
-        print_error("Error: OPENAI_API_KEY not found in environment or .env file.")
+    if not os.getenv("OPENROUTER_API_KEY"):
+        print_error("Error: OPENROUTER_API_KEY not found in environment or .env file.")
         print_info("Please set it before using the AI.")
         return
 

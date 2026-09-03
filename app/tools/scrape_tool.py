@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+import socket
 import requests
 from bs4 import BeautifulSoup
 
@@ -31,6 +33,16 @@ class ScrapeTool:
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
             }
+            # SSRF Protection: Ensure we don't scrape internal IPs or localhosts
+            parsed_url = urlparse(url)
+            hostname = parsed_url.hostname
+            try:
+                ip_addr = socket.gethostbyname(hostname)
+                if ip_addr.startswith("127.") or ip_addr.startswith("10.") or ip_addr.startswith("192.168.") or ip_addr.startswith("172.") or ip_addr == "169.254.169.254" or ip_addr == "0.0.0.0":
+                    return {"ok": False, "message": "Scrape failed: Internal or reserved IPs are not allowed."}
+            except Exception:
+                pass # If DNS resolution fails, requests will catch it anyway
+
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
 

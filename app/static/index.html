@@ -27,7 +27,8 @@
     <div id="chat-container">
         <div id="header">
             <h2>🧠 KNR Central Brain</h2>
-            <div id="controls">
+            <div id="controls" style="display: flex; gap: 10px;">
+                <input type="password" id="app-api-key" placeholder="App API Key (X-API-Key)" style="padding: 5px; border-radius: 4px; border: none; font-size: 0.9rem;" autocomplete="off">
                 <select id="provider">
                                         <option value="openrouter">OpenRouter (Free)</option>
                     <option value="groq">Groq</option>
@@ -127,6 +128,8 @@
 
             const provider = providerSelect.value;
 
+            const appApiKey = document.getElementById('app-api-key').value;
+
             appendMessage(message, 'user');
             textInput.value = '';
 
@@ -142,18 +145,22 @@
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': appApiKey
+                    },
                     body: JSON.stringify({ message, provider })
                 });
 
                 const data = await response.json();
                 document.getElementById(loadingId).remove();
 
-                if (data.ok) {
+                if (response.ok && data.ok) {
                     appendMessage(data.response, 'ai');
                     speakText(data.response);
                 } else {
-                    appendMessage(`Error: ${data.error}`, 'ai');
+                    const errorMsg = data.detail || data.error || 'Unknown error occurred.';
+                    appendMessage(`Error: ${errorMsg}`, 'ai');
                 }
             } catch (err) {
                 document.getElementById(loadingId).remove();
