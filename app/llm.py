@@ -75,6 +75,140 @@ class LLMClient:
                 api_key=api_key
             )
 
+
+        # Omniroute
+        elif self.provider == "omniroute":
+            api_key = os.getenv("OMNIROUTE_API_KEY")
+            if not api_key:
+                raise ValueError("OMNIROUTE_API_KEY is missing in your .env file.")
+            self.model = os.getenv("OMNIROUTE_MODEL", "omniroute-default")
+            return OpenAI(
+                base_url="https://api.omniroute.com/v1", # Placeholder URL
+                api_key=api_key
+            )
+
+        # Agnes
+        elif self.provider == "agnes":
+            api_key = os.getenv("AGNES_API_KEY")
+            if not api_key:
+                raise ValueError("AGNES_API_KEY is missing in your .env file.")
+            self.model = os.getenv("AGNES_MODEL", "agnes-default")
+            return OpenAI(
+                base_url="https://api.agnes.ai/v1", # Placeholder URL
+                api_key=api_key
+            )
+
+        # Nano GPT
+        elif self.provider == "nano_gpt":
+            api_key = os.getenv("NANO_GPT_API_KEY")
+            if not api_key:
+                raise ValueError("NANO_GPT_API_KEY is missing in your .env file.")
+            self.model = os.getenv("NANO_GPT_MODEL", "nano-default")
+            return OpenAI(
+                base_url="https://api.nanogpt.ai/v1", # Placeholder URL
+                api_key=api_key
+            )
+
+        # Xiaomi MIMO
+        elif self.provider == "xiaomi_mimo":
+            api_key = os.getenv("XIAOMI_MIMO_API_KEY")
+            if not api_key:
+                raise ValueError("XIAOMI_MIMO_API_KEY is missing in your .env file.")
+            self.model = os.getenv("XIAOMI_MIMO_MODEL", "mimo-default")
+            return OpenAI(
+                base_url="https://api.xiaomi.com/v1", # Placeholder URL
+                api_key=api_key
+            )
+
+        # Context 7
+        elif self.provider == "context7":
+            api_key = os.getenv("CONTEXT7_API_KEY")
+            if not api_key:
+                raise ValueError("CONTEXT7_API_KEY is missing in your .env file.")
+            self.model = os.getenv("CONTEXT7_MODEL", "context7-default")
+            return OpenAI(
+                base_url="https://api.context7.ai/v1", # Placeholder URL
+                api_key=api_key
+            )
+
+        # Search API
+        elif self.provider == "search_api":
+            api_key = os.getenv("SEARCH_API_KEY")
+            if not api_key:
+                raise ValueError("SEARCH_API_KEY is missing in your .env file.")
+            self.model = os.getenv("SEARCH_API_MODEL", "search-default")
+            return OpenAI(
+                base_url="https://api.searchapi.io/v1", # Placeholder URL
+                api_key=api_key
+            )
+
+        # Aion Labs
+        elif self.provider == "aion_labs":
+            api_key = os.getenv("AION_LABS_API_KEY")
+            if not api_key:
+                raise ValueError("AION_LABS_API_KEY is missing in your .env file.")
+            self.model = os.getenv("AION_LABS_MODEL", "aion-default")
+            return OpenAI(
+                base_url="https://api.aionlabs.com/v1", # Placeholder URL
+                api_key=api_key
+            )
+
+        # Arcee
+        elif self.provider == "arcee":
+            api_key = os.getenv("ARCEE_API_KEY")
+            if not api_key:
+                raise ValueError("ARCEE_API_KEY is missing in your .env file.")
+            self.model = os.getenv("ARCEE_MODEL", "arcee-default")
+            return OpenAI(
+                base_url="https://api.arcee.ai/v1", # Placeholder URL
+                api_key=api_key
+            )
+
+        # DeepInfra
+        elif self.provider == "deepinfra":
+            api_key = os.getenv("DEEPINFRA_API_KEY")
+            if not api_key:
+                raise ValueError("DEEPINFRA_API_KEY is missing in your .env file.")
+            self.model = os.getenv("DEEPINFRA_MODEL", "meta-llama/Llama-2-70b-chat-hf")
+            return OpenAI(
+                base_url="https://api.deepinfra.com/v1/openai",
+                api_key=api_key
+            )
+
+        # Cloudflare Workers AI
+        elif self.provider == "cloudflare":
+            account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+            api_key = os.getenv("CLOUDFLARE_API_KEY")
+            if not account_id or not api_key:
+                raise ValueError("CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_KEY missing.")
+            self.model = os.getenv("CLOUDFLARE_MODEL", "@cf/meta/llama-2-7b-chat-int8")
+            return OpenAI(
+                base_url=f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
+                api_key=api_key
+            )
+
+        # Sarvam AI
+        elif self.provider == "sarvam":
+            api_key = os.getenv("SARVAM_API_KEY")
+            if not api_key:
+                raise ValueError("SARVAM_API_KEY is missing in your .env file.")
+            self.model = os.getenv("SARVAM_MODEL", "sarvam-default")
+            return OpenAI(
+                base_url="https://api.sarvam.ai/v1", # Placeholder URL
+                api_key=api_key
+            )
+
+        # Bedrock (via standard OpenAI compat if proxy is set up, else placeholder)
+        elif self.provider == "bedrock":
+            api_key = os.getenv("BEDROCK_API_KEY")
+            if not api_key:
+                raise ValueError("BEDROCK_API_KEY is missing in your .env file.")
+            self.model = os.getenv("BEDROCK_MODEL", "anthropic.claude-v2")
+            return OpenAI(
+                base_url="https://api.bedrock-proxy.com/v1", # Placeholder proxy URL
+                api_key=api_key
+            )
+
         # OpenAI (Standard fallback)
         else:
             api_key = os.getenv("OPENAI_API_KEY")
