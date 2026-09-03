@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import shutil
 from typing import Union, Dict, Any
@@ -232,13 +233,21 @@ class FileTool:
                 return {"ok": False, "message": f"Not a directory: {p}"}
 
             items = []
-            for child in sorted(p.iterdir()):
-                kind = "[D]" if child.is_dir() else "[F]"
-                try:
-                    size = child.stat().st_size if child.is_file() else 0
-                except Exception:
-                    size = 0
-                items.append({"name": child.name, "path": str(child.relative_to(self.base)), "kind": kind, "size": size})
+            # ⚡ Bolt Optimization: Use os.scandir instead of Path.iterdir()
+            # os.scandir is much faster for listing files as it retrieves file type
+            # and size info from the directory entry, reducing the number of stat() syscalls.
+            with os.scandir(p) as it:
+                entries = sorted(it, key=lambda e: e.name)
+                for entry in entries:
+                    is_dir = entry.is_dir()
+                    kind = "[D]" if is_dir else "[F]"
+                    try:
+                        size = entry.stat().st_size if not is_dir else 0
+                    except Exception:
+                        size = 0
+
+                    rel_path = str(Path(entry.path).relative_to(self.base))
+                    items.append({"name": entry.name, "path": rel_path, "kind": kind, "size": size})
 
             return {"ok": True, "message": f"Listed {len(items)} items in {p}", "items": items}
         except ValueError as e:
