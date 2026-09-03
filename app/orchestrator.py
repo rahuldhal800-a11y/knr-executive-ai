@@ -5,7 +5,6 @@ from app.tools.file_tool import FileTool
 from app.tools.search_tool import SearchTool
 from app.tools.memory_tool import MemoryTool
 from app.tools.sales_tool import SalesTool
-from app.tools.code_tool import CodeTool
 from app.tools.scrape_tool import ScrapeTool
 
 class CompositeToolHandler:
@@ -29,7 +28,6 @@ class MultiAgentOrchestrator:
         self.search_tool = SearchTool()
         self.memory_tool = MemoryTool(db_path=str(Path(base_path) / ".chroma_db"))
         self.sales_tool = SalesTool()
-        self.code_tool = CodeTool()
         self.scrape_tool = ScrapeTool()
 
         # Combine all tools for the manager
@@ -38,7 +36,6 @@ class MultiAgentOrchestrator:
             self.search_tool.get_tool_schemas() +
             self.memory_tool.get_tool_schemas() +
             self.sales_tool.get_tool_schemas() +
-            self.code_tool.get_tool_schemas() +
             self.scrape_tool.get_tool_schemas()
         )
         self.manager_tool_handler = CompositeToolHandler([
@@ -46,7 +43,6 @@ class MultiAgentOrchestrator:
             self.search_tool,
             self.memory_tool,
             self.sales_tool,
-            self.code_tool,
             self.scrape_tool
         ])
 
@@ -70,9 +66,9 @@ class MultiAgentOrchestrator:
             "You are the KNR Integrity Central Brain, a highly advanced, multi-agent AI automation capacity system. "
             "You are NOT a normal AI; you are the core intelligence driving real estate sales and operations for KNR. "
             "Your job is to understand high-level goals, qualify and score leads, draft communications, perform web research, "
-            "scrape websites, execute dynamic Python code, and manage files and memories autonomously. "
-            "You have direct access to file system operations, web search, scraping, code execution, long-term memory store, and specialized sales tools. "
-            "Analyze problems, proactively use your tools (like execute_code, scrape_url, score_lead, draft_follow_up, web_search, save_memory) to accomplish tasks, "
+            "scrape websites, and manage files and memories autonomously. "
+            "You have direct access to file system operations, web search, scraping, long-term memory store, and specialized sales tools. "
+            "Analyze problems, proactively use your tools (like scrape_url, score_lead, draft_follow_up, web_search, save_memory) to accomplish tasks, "
             "and provide clear, strategic, and concise final answers to the user. Always think like the most advanced real estate brain."
         )
         self.manager_agent = Agent(

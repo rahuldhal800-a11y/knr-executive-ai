@@ -75,19 +75,6 @@ class LLMClient:
                 api_key=api_key
             )
 
-        # Amazon Bedrock
-        elif self.provider == "bedrock":
-            # Note: For real bedrock integration you'd typically use boto3,
-            # but some litellm-like proxy can wrap it in OpenAI format.
-            api_key = os.getenv("BEDROCK_API_KEY")
-            if not api_key:
-                raise ValueError("BEDROCK_API_KEY is missing in your .env file.")
-            self.model = os.getenv("BEDROCK_MODEL", "anthropic.claude-3-haiku-20240307-v1:0")
-            return OpenAI(
-                base_url="https://bedrock-runtime.us-east-1.amazonaws.com", # placeholder proxy url
-                api_key=api_key
-            )
-
         # OpenAI (Standard fallback)
         else:
             api_key = os.getenv("OPENAI_API_KEY")

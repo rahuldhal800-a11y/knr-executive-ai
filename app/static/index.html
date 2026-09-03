@@ -19,12 +19,8 @@
         button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1rem; }
         #send-btn { background: #2ecc71; color: white; }
         #mic-btn { background: #e74c3c; color: white; }
-        #video-btn { background: #9b59b6; color: white; }
-        #mic-btn.recording, #video-btn.recording { animation: pulse 1s infinite; }
+        #mic-btn.recording { animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        #video-container { display: none; margin-bottom: 10px; width: 100%; border-radius: 8px; overflow: hidden; background: black; }
-        #local-video { width: 100%; max-height: 200px; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -40,20 +36,14 @@
                     <option value="deepseek">DeepSeek</option>
                     <option value="perplexity">Perplexity</option>
                     <option value="huggingface">HuggingFace</option>
-                    <option value="bedrock">Bedrock</option>
                 </select>
             </div>
         </div>
 
-        <div id="video-container">
-            <video id="local-video" autoplay muted playsinline></video>
-        </div>
-
         <div id="chat-history">
-            <div class="message ai">Hello! I am the KNR Central Brain. You can type, speak, or stream video to me. What would you like me to do today?</div>
+            <div class="message ai">Hello! I am the KNR Central Brain. You can type or speak to me. What would you like me to do today?</div>
         </div>
         <div id="input-area">
-            <button id="video-btn">📹</button>
             <button id="mic-btn">🎤</button>
             <input type="text" id="text-input" placeholder="Type your message here..." autocomplete="off">
             <button id="send-btn">Send</button>
@@ -65,33 +55,7 @@
         const textInput = document.getElementById('text-input');
         const sendBtn = document.getElementById('send-btn');
         const micBtn = document.getElementById('mic-btn');
-        const videoBtn = document.getElementById('video-btn');
-        const videoContainer = document.getElementById('video-container');
-        const localVideo = document.getElementById('local-video');
         const providerSelect = document.getElementById('provider');
-
-        // Video Stream Setup
-        let mediaStream = null;
-        videoBtn.addEventListener('click', async () => {
-            if (mediaStream) {
-                // Stop the stream
-                mediaStream.getTracks().forEach(track => track.stop());
-                mediaStream = null;
-                videoContainer.style.display = 'none';
-                videoBtn.classList.remove('recording');
-            } else {
-                // Start the stream
-                try {
-                    mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                    localVideo.srcObject = mediaStream;
-                    videoContainer.style.display = 'block';
-                    videoBtn.classList.add('recording');
-                } catch (err) {
-                    console.error("Error accessing camera:", err);
-                    alert("Could not access the camera. Make sure permissions are granted.");
-                }
-            }
-        });
 
         // Speech Recognition Setup
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
