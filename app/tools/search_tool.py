@@ -1,8 +1,13 @@
-from duckduckgo_search import DDGS
-
 class SearchTool:
     def __init__(self):
-        self.ddgs = DDGS()
+        self._ddgs = None
+
+    def _get_ddgs(self):
+        if self._ddgs is None:
+            # Lazy import to improve startup time
+            from duckduckgo_search import DDGS
+            self._ddgs = DDGS()
+        return self._ddgs
 
     def get_tool_schemas(self):
         return [
@@ -31,7 +36,8 @@ class SearchTool:
 
     def web_search(self, query: str, max_results: int = 5) -> dict:
         try:
-            results = list(self.ddgs.text(query, max_results=max_results))
+            ddgs = self._get_ddgs()
+            results = list(ddgs.text(query, max_results=max_results))
             return {"ok": True, "results": results}
         except Exception as e:
             return {"ok": False, "message": f"Search failed: {str(e)}"}

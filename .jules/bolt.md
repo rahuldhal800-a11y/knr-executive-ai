@@ -1,0 +1,3 @@
+## 2024-05-18 - CLI Startup Time Bottleneck with Heavy AI Libraries
+**Learning:** Eagerly importing heavy AI libraries (`openai`, `chromadb`, `duckduckgo_search`) in CLI/terminal applications completely ruins the user experience. They can add multiple seconds to the startup time just to load the modules before the CLI even renders its UI or shows help text, leading to a sluggish feeling.
+**Action:** Always lazy-load heavy machine learning or data dependencies in CLI scripts. Delay the `import` statements and initialization of these clients until the specific tool or method that requires them is actually invoked by the user/agent.
