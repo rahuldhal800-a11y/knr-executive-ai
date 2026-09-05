@@ -1,10 +1,17 @@
-import chromadb
 import uuid
 
 class MemoryTool:
     def __init__(self, db_path: str = "./.chroma_db"):
-        self.client = chromadb.PersistentClient(path=db_path)
-        self.collection = self.client.get_or_create_collection(name="ai_memory")
+        self.db_path = db_path
+        self._client = None
+        self._collection = None
+
+    def _ensure_initialized(self):
+        if self._client is None:
+            import chromadb
+            # Lazy initialize chroma to avoid slow startup times
+            self._client = chromadb.PersistentClient(path=self.db_path)
+            self._collection = self._client.get_or_create_collection(name="ai_memory")
 
     def get_tool_schemas(self):
         return [
@@ -53,9 +60,10 @@ class MemoryTool:
         ]
 
     def save_memory(self, content: str, metadata: dict = None) -> dict:
+        self._ensure_initialized()
         try:
             doc_id = str(uuid.uuid4())
-            self.collection.add(
+            self._collection.add(
                 documents=[content],
                 metadatas=[metadata] if metadata else None,
                 ids=[doc_id]
@@ -65,8 +73,9 @@ class MemoryTool:
             return {"ok": False, "message": f"Failed to save memory: {str(e)}"}
 
     def search_memory(self, query: str, n_results: int = 3) -> dict:
+        self._ensure_initialized()
         try:
-            results = self.collection.query(
+            results = self._collection.query(
                 query_texts=[query],
                 n_results=n_results
             )
