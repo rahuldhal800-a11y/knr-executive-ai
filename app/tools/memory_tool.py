@@ -1,10 +1,19 @@
-import chromadb
 import uuid
 
 class MemoryTool:
     def __init__(self, db_path: str = "./.chroma_db"):
-        self.client = chromadb.PersistentClient(path=db_path)
-        self.collection = self.client.get_or_create_collection(name="ai_memory")
+        self.db_path = db_path
+        self._client = None
+        self._collection = None
+
+    @property
+    def collection(self):
+        # ⚡ Bolt: Lazy load heavy chromadb dependency to significantly improve startup time
+        if self._client is None:
+            import chromadb
+            self._client = chromadb.PersistentClient(path=self.db_path)
+            self._collection = self._client.get_or_create_collection(name="ai_memory")
+        return self._collection
 
     def get_tool_schemas(self):
         return [
