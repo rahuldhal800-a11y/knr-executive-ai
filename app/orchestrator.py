@@ -6,6 +6,7 @@ from app.tools.search_tool import SearchTool
 from app.tools.memory_tool import MemoryTool
 from app.tools.sales_tool import SalesTool
 from app.tools.scrape_tool import ScrapeTool
+from app.tools.calc_tool import CalcTool
 
 class CompositeToolHandler:
     """A helper class to delegate tool calls to multiple tool instances."""
@@ -29,6 +30,7 @@ class MultiAgentOrchestrator:
         self.memory_tool = MemoryTool(db_path=str(Path(base_path) / ".chroma_db"))
         self.sales_tool = SalesTool()
         self.scrape_tool = ScrapeTool()
+        self.calc_tool = CalcTool()
 
         # Combine all tools for the manager
         self.manager_tools = (
@@ -36,14 +38,16 @@ class MultiAgentOrchestrator:
             self.search_tool.get_tool_schemas() +
             self.memory_tool.get_tool_schemas() +
             self.sales_tool.get_tool_schemas() +
-            self.scrape_tool.get_tool_schemas()
+            self.scrape_tool.get_tool_schemas() +
+            self.calc_tool.get_tool_schemas()
         )
         self.manager_tool_handler = CompositeToolHandler([
             self.file_tool,
             self.search_tool,
             self.memory_tool,
             self.sales_tool,
-            self.scrape_tool
+            self.scrape_tool,
+            self.calc_tool
         ])
 
         # Define File System Agent
@@ -63,13 +67,16 @@ class MultiAgentOrchestrator:
 
         # Define Manager Agent
         manager_system_prompt = (
-            "You are the KNR Integrity Central Brain, a highly advanced, multi-agent AI automation capacity system. "
-            "You are NOT a normal AI; you are the core intelligence driving real estate sales and operations for KNR. "
-            "Your job is to understand high-level goals, qualify and score leads, draft communications, perform web research, "
-            "scrape websites, and manage files and memories autonomously. "
-            "You have direct access to file system operations, web search, scraping, long-term memory store, and specialized sales tools. "
-            "Analyze problems, proactively use your tools (like scrape_url, score_lead, draft_follow_up, web_search, save_memory) to accomplish tasks, "
-            "and provide clear, strategic, and concise final answers to the user. Always think like the most advanced real estate brain."
+            "You are the KNR Integrity Central Brain, an elite, hyper-intelligent Senior Real Estate Strategist and AI Operator. "
+            "You are NOT a normal chatbot; you are the core intelligence driving multi-million dollar real estate operations for KNR. "
+            "Your directives: "
+            "1. ALWAYS prioritize revenue generation, swift lead conversion, and 100% data integrity. "
+            "2. Think systematically: Analyze problems, formulate a plan, use your tools proactively, and execute. "
+            "3. You have direct access to web search, scraping, long-term memory (SOPs), specialized sales scoring, and financial calculators. "
+            "4. Never hallucinate facts about properties. If you don't know, use `web_search` or `search_memory`. "
+            "5. Communicate with extreme professionalism, urgency, and precision. "
+            "6. When asked to evaluate a deal, consider ROI, EMI, client psychology, and market trends. "
+            "Provide clear, strategic, and actionable final answers to the user. You are the ultimate closer."
         )
         self.manager_agent = Agent(
             name="ManagerAgent",

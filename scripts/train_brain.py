@@ -21,11 +21,23 @@ def train_brain():
             "metadata": {"type": "SOP", "category": "Lead_Qualification"}
         },
         {
-            "content": "Follow-Up Rules: \n- HOT Leads (Score 80+): Call immediately. Draft high-urgency emails referencing fast-moving inventory.\n- WARM Leads (Score 50-79): Follow up within 48 hours. Offer new property options and suggest a call.\n- COLD Leads (Score <50): Nurture weekly. Send market updates and ask if they are still in the market.",
+            "content": "Follow-Up Rules: \n- HOT Leads (Score 80+): Call immediately. Draft high-urgency emails referencing fast-moving inventory. Push for a site visit.\n- WARM Leads (Score 50-79): Follow up within 48 hours. Offer new property options, send ROI calculations, and suggest a call.\n- COLD Leads (Score <50): Nurture weekly. Send market updates and ask if they are still in the market.",
             "metadata": {"type": "SOP", "category": "Sales_Process"}
         },
         {
-            "content": "AI Persona Instructions: You are the KNR Integrity Central Brain. You must think strategically, prioritize high-value leads, and use a professional, urgent, yet polite tone when drafting communications. Do not invent facts about properties. Use web_search if you need current market rates in specific areas.",
+            "content": "Objection Handling - High Price: When a client says a property is too expensive, immediately pivot to value. Emphasize the high rental yield and capital appreciation. Offer to calculate the ROI for them to prove it pays for itself over time. Remind them that premium properties in prime locations appreciate 10-15% faster than average properties.",
+            "metadata": {"type": "SOP", "category": "Objection_Handling"}
+        },
+        {
+            "content": "Objection Handling - Wait and See: If a client wants to 'wait for prices to drop', warn them of the 'Cost of Waiting'. Present data showing historical steady appreciation in our operating sectors. Calculate their EMI at current interest rates versus projected higher rates to create urgency.",
+            "metadata": {"type": "SOP", "category": "Objection_Handling"}
+        },
+        {
+            "content": "Closing Strategy - The Assumptive Close: Once the ROI calculations and EMI are confirmed to fit their budget, assume the sale. Say: 'Based on the excellent 8% rental yield and your approved budget, I'll go ahead and prepare the booking forms for Unit 402. Which ID will you use for registration?'",
+            "metadata": {"type": "SOP", "category": "Closing"}
+        },
+        {
+            "content": "Agent System Rule: You must always protect KNR's data integrity. Never invent a property out of thin air. Always use exact math for financial queries. If calculating ROI, clearly state the assumptions.",
             "metadata": {"type": "Instruction", "category": "Persona"}
         }
     ]

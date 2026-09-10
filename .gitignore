@@ -20,3 +20,4 @@ venv/
 .DS_Store
 Thumbs.db
 .chroma_db/
+server_output.log

@@ -25,7 +25,7 @@ class LLMClient:
             api_key = os.getenv("GROQ_API_KEY")
             if not api_key:
                 raise ValueError("GROQ_API_KEY is missing in your .env file.")
-            self.model = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
+            self.model = os.getenv("GROQ_MODEL", "llama3-8b-8192")
             return OpenAI(
                 base_url="https://api.groq.com/openai/v1",
                 api_key=api_key
