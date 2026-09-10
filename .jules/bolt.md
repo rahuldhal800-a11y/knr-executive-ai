@@ -1,0 +1,3 @@
+## 2024-05-18 - Lazy-loading ML and data dependencies
+**Learning:** Initializing heavy libraries like `openai`, `chromadb`, and `duckduckgo_search` globally or eagerly in class `__init__` methods causes significant startup bottlenecks (~3.5 seconds). Python's `@property` decorator is an effective pattern for delaying initialization until the dependency is actually needed.
+**Action:** Always lazy-load heavy machine learning or data dependencies in CLI scripts and agents to prevent startup bottlenecks. Delay import statements and client initialization until the specific tool or method is invoked.
