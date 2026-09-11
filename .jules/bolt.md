@@ -1,0 +1,3 @@
+## 2025-02-28 - Lazy-load Heavy Dependencies in AI Tools
+**Learning:** Initializing heavy machine learning or data dependencies (like `openai`, `chromadb`, and `duckduckgo_search`) at the module level or in tool `__init__` methods causes severe startup bottlenecks for the CLI application. Even simple imports like `from duckduckgo_search import DDGS` and `import chromadb` take significant time.
+**Action:** Always lazy-load these dependencies. Use Python `@property` decorators for class properties to delay import statements and client initialization until the specific tool or method is first invoked.
