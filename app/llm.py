@@ -1,25 +1,21 @@
-import os
-from openai import OpenAI
-from dotenv import load_dotenv
+from typing import Any, Dict, List
 
-load_dotenv()
+from app.provider_router import ModelRouter
+
 
 class LLMClient:
+    """Backward-compatible facade around the multi-provider model router."""
+
     def __init__(self):
-        # Initialize the OpenAI client
-        # It will automatically use the OPENAI_API_KEY environment variable if it's set
-        self.client = OpenAI()
-        self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self.router = ModelRouter()
 
-    def chat_completion(self, messages, tools=None, tool_choice="auto"):
-        kwargs = {
-            "model": self.model,
-            "messages": messages,
-        }
+    def chat_completion(
+        self,
+        messages: List[Dict[str, Any]],
+        tools=None,
+        tool_choice="auto",
+    ):
+        return self.router.chat_completion(messages, tools=tools, tool_choice=tool_choice)
 
-        if tools:
-            kwargs["tools"] = tools
-            kwargs["tool_choice"] = tool_choice
-
-        response = self.client.chat.completions.create(**kwargs)
-        return response.choices[0].message
+    def status(self):
+        return self.router.status()
