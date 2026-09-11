@@ -36,3 +36,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+# CPU/WASM fallback is served from the aegis-pages branch when WebGPU is unavailable.
