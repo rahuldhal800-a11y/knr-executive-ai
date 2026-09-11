@@ -37,4 +37,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# CPU/WASM fallback is served from the aegis-pages branch when WebGPU is unavailable.
+# Force a fresh deployment after updating the Pages branch cache/model fallback.
