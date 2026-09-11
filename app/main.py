@@ -1,93 +1,69 @@
+import json
 import os
 from pathlib import Path
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 from rich.markdown import Markdown
-
-from app.orchestrator import MultiAgentOrchestrator
 from dotenv import load_dotenv
 
-load_dotenv()
+from app.orchestrator import MultiAgentOrchestrator
 
+load_dotenv()
 console = Console()
 
 BANNER = """
-====================================
-🤖 KNR Executive AI v0.3
-  (Multi-Agent Autonomous Mode)
-====================================
+========================================
+🧠 KNR AEGIS AI v1.0
+  Autonomous Executive Agent
+========================================
+"""
+HELP_TEXT = """Natural-language autonomous digital-work agent.
+
+Commands:
+  help      Show this help
+  models    Show configured model providers and availability
+  clear     Clear terminal
+  exit      Exit
+
+The agent can research, manipulate project files, use memory, and execute
+multi-step work through its configured tools. Model quota/rate-limit failures
+automatically fall through to the next configured provider.
 """
 
-HELP_TEXT = """
-Welcome to the interactive multi-agent terminal.
-
-You can speak in natural language to the AI.
-It has powers to:
- - Access and manipulate the filesystem (read/write/create/delete).
- - Perform live web searches.
- - Save to and query long-term memory (RAG).
-
-Type your request below.
-Type 'clear' to clear the terminal.
-Type 'exit' or 'quit' to close.
-"""
-
-def print_banner():
-    console.print(Panel.fit(Text(BANNER, style="blue"), border_style="blue"))
-
-def print_help():
-    console.print(Panel(HELP_TEXT, title="Help", border_style="blue"))
-
-def print_info(msg: str):
-    console.print(f"[blue]{msg}[/blue]")
-
-def print_error(msg: str):
-    console.print(f"[red]{msg}[/red]")
 
 def main_loop():
-    # Setup OpenAI key check
-    if not os.getenv("OPENAI_API_KEY"):
-        print_error("Error: OPENAI_API_KEY not found in environment or .env file.")
-        print_info("Please set it before using the AI.")
-        return
-
     orchestrator = MultiAgentOrchestrator(str(Path.cwd()))
-
-    print_banner()
-    print_help()
+    console.print(Panel.fit(Text(BANNER, style="blue"), border_style="blue"))
+    console.print(Panel(HELP_TEXT, title="Help", border_style="blue"))
 
     while True:
         try:
             raw = console.input("[bold green]You > [/bold green]")
         except (KeyboardInterrupt, EOFError):
             console.print()
-            print_info("Exiting.")
             break
-
         if not raw.strip():
             continue
-
         cmd = raw.lower().strip()
-
         if cmd == "clear":
             os.system("cls" if os.name == "nt" else "clear")
             continue
-        elif cmd in ["exit", "quit"]:
-            print_info("Goodbye.")
+        if cmd in {"exit", "quit"}:
             break
-
+        if cmd == "help":
+            console.print(Panel(HELP_TEXT, title="Help", border_style="blue"))
+            continue
+        if cmd == "models":
+            console.print_json(json.dumps(orchestrator.model_status(), default=str))
+            continue
         try:
-            with console.status("[bold yellow]AI is thinking (and possibly using tools)...[/bold yellow]", spinner="dots"):
+            with console.status("[bold yellow]Agent executing...[/bold yellow]", spinner="dots"):
                 response = orchestrator.process_request(raw)
+            console.print(Panel(Markdown(response), title="AEGIS", border_style="green"))
+        except Exception as exc:
+            console.print(f"[red]Agent error:[/red] {exc}")
 
-            console.print(Panel(Markdown(response), title="AI", border_style="green"))
-
-        except Exception as e:
-            print_error(f"An error occurred: {e}")
-
-def main():
-    main_loop()
 
 if __name__ == "__main__":
-    main()
+    main_loop()

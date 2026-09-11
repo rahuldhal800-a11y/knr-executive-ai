@@ -5,8 +5,8 @@ from app.tools.file_tool import FileTool
 from app.tools.search_tool import SearchTool
 from app.tools.memory_tool import MemoryTool
 
+
 class CompositeToolHandler:
-    """A helper class to delegate tool calls to multiple tool instances."""
     def __init__(self, tools_list):
         self.tools = tools_list
 
@@ -20,48 +20,36 @@ class CompositeToolHandler:
 class MultiAgentOrchestrator:
     def __init__(self, base_path: str = "."):
         self.llm_client = LLMClient()
-
-        # Initialize tools
-        self.file_tool = FileTool(Path(base_path))
+        root = Path(base_path).resolve()
+        self.file_tool = FileTool(root)
         self.search_tool = SearchTool()
-        self.memory_tool = MemoryTool(db_path=str(Path(base_path) / ".chroma_db"))
-
-        # Combine all tools for the manager
-        self.manager_tools = self.file_tool.get_tool_schemas() + self.search_tool.get_tool_schemas() + self.memory_tool.get_tool_schemas()
-        self.manager_tool_handler = CompositeToolHandler([self.file_tool, self.search_tool, self.memory_tool])
-
-        # Define File System Agent
-        fs_system_prompt = (
-            "You are a File System Agent. You are specialized in reading, writing, and manipulating files and directories. "
-            "You have access to a suite of file tools. Use them to fulfill the user's request. "
-            "Always be careful not to delete important files. "
-            "Return a clear summary of the actions you took and the result."
+        self.memory_tool = MemoryTool(db_path=str(root / ".chroma_db"))
+        self.manager_tools = (
+            self.file_tool.get_tool_schemas()
+            + self.search_tool.get_tool_schemas()
+            + self.memory_tool.get_tool_schemas()
         )
-        self.fs_agent = Agent(
-            name="FileSystemAgent",
-            llm_client=self.llm_client,
-            system_prompt=fs_system_prompt,
-            tools=self.file_tool.get_tool_schemas(),
-            tool_handler=self.file_tool
+        self.manager_tool_handler = CompositeToolHandler(
+            [self.file_tool, self.search_tool, self.memory_tool]
         )
+        prompt = """You are the KNR Executive AI autonomous work manager.
 
-        # Define Manager Agent
-        manager_system_prompt = (
-            "You are the Manager Agent for KNR Executive AI. "
-            "Your job is to understand the user's high-level goal and solve it. "
-            "You have direct access to file system operations, web search, and a long-term memory store through your tools. "
-            "Analyze the problem, use your tools (like web_search for current info, save_memory to learn/remember, or file tools) to accomplish the task, and provide a clear and concise final answer to the user."
-        )
+Turn the user's goal into concrete actions. Use available tools instead of merely describing what to do. Break large work into verifiable steps, inspect existing files before changing them, preserve user data, and report what was actually completed. Use web search for current information and memory only for durable project context. Never claim an action succeeded unless a tool result confirms it.
+
+You are a general digital-work agent: research, document work, content production, project operations, codebase maintenance, data preparation, and business workflows. Ask only when an essential external decision or credential is genuinely unavailable; otherwise make reasonable reversible choices and execute.
+"""
         self.manager_agent = Agent(
-            name="ManagerAgent",
+            name="ExecutiveManager",
             llm_client=self.llm_client,
-            system_prompt=manager_system_prompt,
+            system_prompt=prompt,
             tools=self.manager_tools,
-            tool_handler=self.manager_tool_handler
+            tool_handler=self.manager_tool_handler,
+            max_steps=int(__import__('os').getenv("AGENT_MAX_STEPS", "24")),
         )
 
     def process_request(self, user_input: str) -> str:
-        """Process a user request through the multi-agent system."""
-        # For this version, the manager agent directly handles the tools and executes the task
         self.manager_agent.add_user_message(user_input)
         return self.manager_agent.run()
+
+    def model_status(self):
+        return self.llm_client.status()

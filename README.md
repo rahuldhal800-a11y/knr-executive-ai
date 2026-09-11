@@ -1,70 +1,87 @@
-# KNR Executive AI v0.2
+# KNR AEGIS AI
 
-This project implements a terminal-based filesystem "AI" (no AI used) called KNR Executive AI v0.2.
+Autonomous, tool-using executive agent for KNR Integrity and other digital work.
 
-It provides a small interactive shell to perform filesystem operations. The implementation uses Python's pathlib and shutil and rich for colored terminal output.
+## What changed in v1
 
-Usage
+- Natural-language multi-step agent loop with a bounded execution budget.
+- OpenAI-compatible **multi-provider router**.
+- Automatic fallback when a provider reports quota/rate-limit/capacity/timeout failures.
+- Local Ollama model as the user's dedicated model slot; no API credit is required for local inference.
+- Provider status command (`models`).
+- Optional public-model discovery from Hugging Face metadata.
+- Existing filesystem, web-search and long-term-memory tools remain the agent's tool surface.
 
-Run the terminal app:
+This is an extensible agent core, not a claim of unrestricted autonomy. Tool permissions should be expanded deliberately as new digital-work integrations are added.
 
+## Setup
+
+```bash
+git clone https://github.com/rahuldhal800-a11y/knr-executive-ai.git
+cd knr-executive-ai
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+Add at least one provider. For local-only operation, install Ollama and pull a model, then leave `OLLAMA_ENABLED=true`.
+
+For hosted OpenAI-compatible providers, set their API key environment variable and add them to `MODEL_PROVIDERS_JSON`.
+
+Example `.env`:
+
+```env
+OPENAI_API_KEY=...
+OPENAI_MODEL=gpt-4o-mini
+OLLAMA_ENABLED=true
+OLLAMA_MODEL=qwen2.5:7b
+MODEL_PROVIDERS_JSON=[{"name":"backup","model":"YOUR_MODEL","api_key_env":"BACKUP_API_KEY","base_url":"https://YOUR_PROVIDER/v1"}]
+```
+
+## Run
+
+```bash
 python3 -m app.main
+```
 
-Commands
+Then give the agent a goal in natural language, for example:
 
-- help
-  Show the help screen.
+```text
+Research five competing real-estate agencies, summarize their positioning, and save the findings to competitor-report.md.
+```
 
-- list [path]
-  List files and folders in the given path (relative to where you started the program). Example: list or list Test
+Check provider availability:
 
-- create folder <folder>
-  Create a folder (and any missing parents). Example: create folder Test
+```text
+models
+```
 
-- create file <file>
-  Create an empty file. Example: create file notes.txt
+## Model discovery
 
-- read <file>
-  Display contents of a file. Example: read notes.txt
+```bash
+python3 scripts/discover_models.py --limit 20
+```
 
-- write <file> <text>
-  Overwrite a file with text. If the file or parents do not exist, they will be created. Example: write notes.txt "Hello Rahul"
+Discovery only returns public Hugging Face metadata. A public model is **not automatically a free hosted inference endpoint**. To use a model, connect a legitimate compatible provider or run it locally.
 
-- append <file> <text>
-  Append text to a file. Example: append notes.txt "Welcome"
+## Architecture
 
-- rename <old> <new>
-  Rename a file or folder inside the working directory. Example: rename notes.txt note.txt
+```text
+User goal
+   ↓
+ExecutiveManager
+   ↓
+bounded agent loop
+   ├── filesystem tools
+   ├── web search
+   ├── long-term memory
+   └── LLM router
+          ├── OpenAI
+          ├── configured compatible providers
+          └── local Ollama
+```
 
-- move <old> <new>
-  Move a file or folder. Example: move backup.txt Backup/backup.txt
+## Important design choice
 
-- copy <old> <new>
-  Copy a file or folder. Copying directories requires the destination to not already exist. Example: copy note.txt backup.txt
-
-- delete <file_or_folder>
-  Delete a file or folder (recursively for folders). Example: delete backup.txt
-
-- clear
-  Clear the terminal screen.
-
-- exit
-  Exit the program.
-
-Examples (test flow)
-
-1. create folder Test
-2. create file notes.txt
-3. write notes.txt Hello
-4. append notes.txt Rahul
-5. read notes.txt
-6. rename notes.txt note.txt
-7. copy note.txt backup.txt
-8. move backup.txt Backup/backup.txt
-9. delete note.txt
-10. list
-
-Notes
-
-- All paths are resolved relative to the directory where the program is started and the tool prevents operations outside that directory for safety.
-- The app uses the `rich` library for colored output. See requirements.txt.
+The router does not bypass exhausted credits or access controls. It detects provider failures and moves to another **configured, authorized** provider. This gives the system resilience without embedding credential theft or service-limit bypasses.
