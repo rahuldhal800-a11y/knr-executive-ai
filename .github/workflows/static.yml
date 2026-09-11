@@ -1,4 +1,4 @@
-# Deploy the AEGIS Mobile static app from the dedicated Pages branch.
+# Deploy the AEGIS Mobile app from the main branch root.
 name: Deploy AEGIS Mobile to Pages
 
 on:
@@ -22,10 +22,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout AEGIS Pages branch
+      - name: Checkout main AEGIS app
         uses: actions/checkout@v4
         with:
-          ref: aegis-pages
+          ref: main
           fetch-depth: 1
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -36,5 +36,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-# Verified CPU/WASM model: onnx-community/SmolLM-135M-Instruct-ONNX.
