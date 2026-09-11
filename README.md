@@ -1,70 +1,62 @@
-# KNR Executive AI v0.2
+# KNR Executive AI — AEGIS
 
-This project implements a terminal-based filesystem "AI" (no AI used) called KNR Executive AI v0.2.
+AEGIS is being developed as an independent AI system with its own model architecture, tokenizer, training pipeline, evaluation layer, tools, memory, and deployment stack.
 
-It provides a small interactive shell to perform filesystem operations. The implementation uses Python's pathlib and shutil and rich for colored terminal output.
+## What is now in this repository
 
-Usage
+### AEGIS model from scratch
 
-Run the terminal app:
+`aegis_model/` contains a compact decoder-only Transformer implemented in PyTorch. It starts from **random initialization**; it does not use OpenAI, Anthropic, Gemini, or another hosted LLM for its model weights.
 
-python3 -m app.main
+- byte-level tokenizer
+- causal self-attention
+- Transformer blocks
+- tied input/output embeddings
+- causal language-model loss
+- local autoregressive generation
+- configurable model size and sequence length
 
-Commands
+The default research configuration is intentionally small so that the architecture can be tested before scaling.
 
-- help
-  Show the help screen.
+### Training
 
-- list [path]
-  List files and folders in the given path (relative to where you started the program). Example: list or list Test
+`training/train_from_scratch.py` is the actual pretraining entry point. It reads an authorized text/JSONL corpus, initializes AEGIS randomly, trains it with next-token prediction, and writes a checkpoint.
 
-- create folder <folder>
-  Create a folder (and any missing parents). Example: create folder Test
+Install:
 
-- create file <file>
-  Create an empty file. Example: create file notes.txt
+```bash
+pip install -r training/requirements-from-scratch.txt
+```
 
-- read <file>
-  Display contents of a file. Example: read notes.txt
+Train a small research checkpoint:
 
-- write <file> <text>
-  Overwrite a file with text. If the file or parents do not exist, they will be created. Example: write notes.txt "Hello Rahul"
+```bash
+python training/train_from_scratch.py \
+  --data data/aegis_train.jsonl \
+  --output artifacts/aegis-small \
+  --steps 1000
+```
 
-- append <file> <text>
-  Append text to a file. Example: append notes.txt "Welcome"
+Run a checkpoint:
 
-- rename <old> <new>
-  Rename a file or folder inside the working directory. Example: rename notes.txt note.txt
+```bash
+python scripts/aegis_generate.py \
+  --checkpoint artifacts/aegis-small/model.pt \
+  --prompt "AEGIS:"
+```
 
-- move <old> <new>
-  Move a file or folder. Example: move backup.txt Backup/backup.txt
+The included dataset is a small development dataset, **not enough to produce a capable general-purpose LLM**. A serious model requires a much larger, legally authorized corpus, substantially more compute, tokenizer research, distributed training, and rigorous evaluation.
 
-- copy <old> <new>
-  Copy a file or folder. Copying directories requires the destination to not already exist. Example: copy note.txt backup.txt
+## Existing AEGIS systems
 
-- delete <file_or_folder>
-  Delete a file or folder (recursively for folders). Example: delete backup.txt
+The repository also contains the provider router, agent/tool layer, defensive cybersecurity skills, consent-based device capability layer, post-training/LoRA pipeline, evaluation benchmark, and mobile PWA work. These systems are complementary to the from-scratch model; they do not make the current checkpoint a frontier model.
 
-- clear
-  Clear the terminal screen.
+## Verification
 
-- exit
-  Exit the program.
+The model package has unit smoke tests in `tests/test_aegis_model.py`, executed by `.github/workflows/test-aegis-model.yml`.
 
-Examples (test flow)
+A model is not declared successful merely because training starts or code compiles. Track loss/perplexity, held-out validation, instruction following, coding, tool use, factuality, safety, and regression metrics before calling a checkpoint an AEGIS release.
 
-1. create folder Test
-2. create file notes.txt
-3. write notes.txt Hello
-4. append notes.txt Rahul
-5. read notes.txt
-6. rename notes.txt note.txt
-7. copy note.txt backup.txt
-8. move backup.txt Backup/backup.txt
-9. delete note.txt
-10. list
+## Data and safety
 
-Notes
-
-- All paths are resolved relative to the directory where the program is started and the tool prevents operations outside that directory for safety.
-- The app uses the `rich` library for colored output. See requirements.txt.
+Only train on data you are authorized to use. Do not commit credentials, secrets, unnecessary personal data, or copyrighted material without the required rights. Keep tool and device actions behind explicit authorization and capability boundaries.
