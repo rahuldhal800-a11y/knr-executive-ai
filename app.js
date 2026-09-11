@@ -1,6 +1,6 @@
 import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm@0.2.79";
 const MODEL="Llama-3.2-1B-Instruct-q4f16_1-MLC";
-const CPU_MODEL="onnx-community/SmolLM2-135M-Instruct-ONNX-MHA";
+const CPU_MODEL="onnx-community/SmolLM2-135M-Instruct-ONNX";
 let engine=null,cpuGenerator=null,stream=null,deferredInstall=null,mode=null;
 const $=id=>document.getElementById(id);
 function add(text,who="ai"){const d=document.createElement("div");d.className=`msg ${who}`;d.textContent=text;$("chat").appendChild(d);$("chat").scrollTop=$("chat").scrollHeight}
