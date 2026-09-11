@@ -1,0 +1,23 @@
+name: Test AEGIS model
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install model dependency
+        run: python -m pip install --upgrade pip && pip install -r training/requirements-from-scratch.txt pytest
+      - name: Run model smoke tests
+        run: pytest -q tests/test_aegis_model.py
