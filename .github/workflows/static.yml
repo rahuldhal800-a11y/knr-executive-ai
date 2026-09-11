@@ -37,4 +37,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# Force a fresh deployment after updating the Pages branch cache/model fallback.
+# Verified CPU/WASM model: onnx-community/SmolLM-135M-Instruct-ONNX.
