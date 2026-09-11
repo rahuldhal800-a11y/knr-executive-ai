@@ -1,1 +1,12 @@
-{"name":"AEGIS Mobile","short_name":"AEGIS","start_url":"./","display":"standalone","background_color":"#05070b","theme_color":"#05070b","icons":[]}
+{
+  "name":"AEGIS Mobile",
+  "short_name":"AEGIS",
+  "id":"./",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "orientation":"portrait",
+  "theme_color":"#09090b",
+  "background_color":"#09090b",
+  "description":"Local browser AI with explicit camera and microphone permissions."
+}
