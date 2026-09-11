@@ -1,1 +1,123 @@
-let engine=null,stream=null;const $=id=>document.getElementById(id);const add=(text,who='ai')=>{const d=document.createElement('div');d.className='msg '+who;d.textContent=text;$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight};async function loadModel(){if(!navigator.gpu){$('modelStatus').textContent='WebGPU is not available on this device/browser.';return}try{$('modelStatus').textContent='Loading local model… first load is large.';const w=window.AEGIS_WEBLLM;engine=new w.MLCEngine();engine.setInitProgressCallback(p=>$('modelStatus').textContent=p.text||'Loading…');await engine.reload('Llama-3.2-1B-Instruct-q4f16_1-MLC');$('modelStatus').textContent='Local model ready — inference stays on this device.';add('Local AEGIS brain loaded. No model API key is being used.')}catch(e){$('modelStatus').textContent='Model load failed: '+e.message;add('On-device model could not load. The phone/browser may not have compatible WebGPU memory.')}}$('load').onclick=loadModel;async function media(kind){try{if(stream)stream.getTracks().forEach(t=>t.stop());stream=await navigator.mediaDevices.getUserMedia(kind==='cam'?{video:{facingMode:'environment'},audio:true}:{audio:true,video:false});if(kind==='cam'){$('video').srcObject=stream;$('video').style.display='block'}$('device').textContent='Granted: '+(kind==='cam'?'camera + microphone':'microphone')+'.'}catch(e){$('device').textContent='Permission/error: '+e.name}}$('cam').onclick=()=>media('cam');$('mic').onclick=()=>media('mic');$('stop').onclick=()=>{if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$('video').style.display='none';$('device').textContent='Device stream stopped.'};async function send(){const v=$('input').value.trim();if(!v)return;$('input').value='';add(v,'user');if(!engine){add('Load the local model first.','ai');return}try{const r=await engine.chat.completions.create({messages:[{role:'system',content:'You are AEGIS, a concise executive AI assistant running locally on the user phone. Never claim tools or access you do not have.'},{role:'user',content:v}],temperature:.6,max_tokens:512});add(r.choices[0].message.content||'No response.')}catch(e){add('Local inference error: '+e.message)}}$('send').onclick=send;$('input').onkeydown=e=>{if(e.key==='Enter')send()};if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});let deferred;$('install').onclick=()=>deferred?.prompt();window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('install').hidden=false});
+import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm@0.2.79";
+
+const MODEL = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+let engine = null;
+let stream = null;
+let deferredInstall = null;
+
+const $ = (id) => document.getElementById(id);
+
+function add(text, who = "ai") {
+  const d = document.createElement("div");
+  d.className = `msg ${who}`;
+  d.textContent = text;
+  $("chat").appendChild(d);
+  $("chat").scrollTop = $("chat").scrollHeight;
+}
+
+async function loadModel() {
+  const status = $("modelStatus");
+  if (!navigator.gpu) {
+    status.textContent = "WebGPU is unavailable in this browser/device.";
+    add("This phone/browser does not expose WebGPU, so local GPU inference cannot start.");
+    return;
+  }
+  $("load").disabled = true;
+  status.textContent = "Checking GPU and loading local model…";
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) throw new Error("No compatible GPU adapter was found.");
+    engine = await CreateMLCEngine(MODEL, {
+      initProgressCallback: (p) => {
+        status.textContent = p.text || `Loading ${(p.progress * 100).toFixed(0)}%`;
+        $("progress").value = Number.isFinite(p.progress) ? p.progress : 0;
+      },
+    });
+    status.textContent = "Local model ready. First load downloads model files; later loads use browser cache.";
+    $("progress").value = 1;
+    add("AEGIS local brain is ready. No hosted AI API is being called for chat inference.");
+  } catch (e) {
+    status.textContent = `Model load failed: ${e?.message || e}`;
+    add(`Local model could not start: ${e?.message || e}`);
+  } finally {
+    $("load").disabled = false;
+  }
+}
+
+async function media(kind) {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    $("device").textContent = "Camera/microphone APIs are unavailable in this browser/context.";
+    return;
+  }
+  try {
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+    const constraints = kind === "cam"
+      ? { video: { facingMode: { ideal: "environment" } }, audio: true }
+      : { audio: true };
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    if (kind === "cam") {
+      $("video").srcObject = stream;
+      $("video").style.display = "block";
+      $("device").textContent = "Camera + microphone granted for this session.";
+    } else {
+      $("device").textContent = "Microphone granted for this session.";
+    }
+  } catch (e) {
+    $("device").textContent = `Permission/error: ${e?.name || e}`;
+  }
+}
+
+function stopMedia() {
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  stream = null;
+  $("video").srcObject = null;
+  $("video").style.display = "none";
+  $("device").textContent = "Device stream stopped.";
+}
+
+async function send() {
+  const input = $("input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  add(text, "user");
+  if (!engine) {
+    add("Load the local brain first.");
+    return;
+  }
+  try {
+    const r = await engine.chat.completions.create({
+      messages: [
+        { role: "system", content: "You are AEGIS, a concise executive AI assistant running locally on the user's phone. Never claim access to tools, files, sensors, accounts, or data you do not actually have." },
+        { role: "user", content: text },
+      ],
+      temperature: 0.6,
+      max_tokens: 512,
+    });
+    add(r.choices?.[0]?.message?.content || "No response.");
+  } catch (e) {
+    add(`Local inference error: ${e?.message || e}`);
+  }
+}
+
+$("load").onclick = loadModel;
+$("cam").onclick = () => media("cam");
+$("mic").onclick = () => media("mic");
+$("stop").onclick = stopMedia;
+$("send").onclick = send;
+$("input").onkeydown = (e) => { if (e.key === "Enter") send(); };
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstall = e;
+  $("install").hidden = false;
+});
+$("install").onclick = async () => {
+  if (!deferredInstall) return;
+  await deferredInstall.prompt();
+  deferredInstall = null;
+  $("install").hidden = true;
+};
+
+add("AEGIS Mobile shell loaded. Load the local brain when ready.");
