@@ -1,8 +1,14 @@
-from duckduckgo_search import DDGS
-
 class SearchTool:
     def __init__(self):
-        self.ddgs = DDGS()
+        self._ddgs = None
+
+    @property
+    def ddgs(self):
+        # ⚡ Bolt Optimization: Lazy load DuckDuckGo Search to improve startup time.
+        if self._ddgs is None:
+            from duckduckgo_search import DDGS
+            self._ddgs = DDGS()
+        return self._ddgs
 
     def get_tool_schemas(self):
         return [
