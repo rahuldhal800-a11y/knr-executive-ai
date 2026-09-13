@@ -1,15 +1,23 @@
 import os
-from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class LLMClient:
     def __init__(self):
-        # Initialize the OpenAI client
-        # It will automatically use the OPENAI_API_KEY environment variable if it's set
-        self.client = OpenAI()
+        self._client = None
         self.model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+    @property
+    def client(self):
+        # ⚡ Bolt Optimization: Lazy load OpenAI to improve startup time.
+        # Defers expensive import and initialization until actually needed.
+        if self._client is None:
+            from openai import OpenAI
+            # Initialize the OpenAI client
+            # It will automatically use the OPENAI_API_KEY environment variable if it's set
+            self._client = OpenAI()
+        return self._client
 
     def chat_completion(self, messages, tools=None, tool_choice="auto"):
         kwargs = {
