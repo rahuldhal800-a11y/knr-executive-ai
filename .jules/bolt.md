@@ -1,0 +1,3 @@
+## 2024-09-17 - Lazy loading heavy LLM/AI dependencies
+**Learning:** Found a major architectural bottleneck where the multi-agent orchestrator was importing heavy libraries (`openai`, `duckduckgo_search`, `chromadb`) and initializing remote/local clients synchronously during application startup (`app.main.py`). This was unnecessarily blocking the entire application just to set up tools that may not even be used immediately.
+**Action:** Applied the `@property` getter pattern to delay imports and client instantiation until exactly when they are accessed. This reduced the base module import time from ~3.05s to ~0.069s. Next time, always search for synchronous deep module imports at the top of file tool classes when optimizing Python CLI/Web APIs.
