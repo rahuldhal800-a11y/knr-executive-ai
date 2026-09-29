@@ -5,3 +5,6 @@
 ## 2024-05-17 - Vector Database Version Control Anti-pattern
 **Learning:** Local vector databases like Chroma DB generate large binary files (e.g., `chroma.sqlite3`) and directory structures (e.g., `.chroma_db/`). Committing these to version control creates repository bloat, merge conflicts, and leaks state.
 **Action:** Always verify `.gitignore` before committing optimization scripts or tools that might have run and generated local persistence directories.
+## 2024-05-24 - Enable FlashAttention in PyTorch by removing explicit boolean masks
+**Learning:** PyTorch's `F.scaled_dot_product_attention` cannot dispatch to highly optimized memory-efficient FlashAttention kernels if an explicit boolean `attn_mask` is passed, even if it's just a causal mask. This leads to significantly higher VRAM usage and slower execution due to explicit materialization of the mask tensor.
+**Action:** Always use `is_causal=True` instead of explicitly generating and passing a `tril` mask matrix when implementing causal autoregressive models with PyTorch's SDPA.
