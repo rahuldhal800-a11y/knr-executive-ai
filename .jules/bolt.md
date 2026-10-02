@@ -5,3 +5,7 @@
 ## 2024-05-17 - Vector Database Version Control Anti-pattern
 **Learning:** Local vector databases like Chroma DB generate large binary files (e.g., `chroma.sqlite3`) and directory structures (e.g., `.chroma_db/`). Committing these to version control creates repository bloat, merge conflicts, and leaks state.
 **Action:** Always verify `.gitignore` before committing optimization scripts or tools that might have run and generated local persistence directories.
+
+## 2024-05-18 - PyTorch Memory & Speed Optimization in Attention
+**Learning:** In PyTorch models, using `is_causal=True` in `F.scaled_dot_product_attention` instead of explicit boolean masks to enable FlashAttention not only saves memory on GPUs but can also provide a significant speed up even on CPU execution (as observed in our benchmark with a reduction from ~11.5s to ~7.9s).
+**Action:** Always use `is_causal=True` in `F.scaled_dot_product_attention` for causal language models instead of creating explicit masks.
