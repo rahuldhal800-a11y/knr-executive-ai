@@ -30,7 +30,8 @@ class CausalSelfAttention(nn.Module):
         self.qkv = nn.Linear(cfg.d_model, 3 * cfg.d_model, bias=False)
         self.out = nn.Linear(cfg.d_model, cfg.d_model, bias=False)
         self.dropout = nn.Dropout(cfg.dropout)
-        self.register_buffer("mask", torch.tril(torch.ones(cfg.max_seq_len, cfg.max_seq_len, dtype=torch.bool)), persistent=False)
+        # ⚡ Bolt Optimization: Removed explicit mask buffer to save memory.
+        # Using `is_causal=True` in scaled_dot_product_attention enables memory efficient FlashAttention
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         b, t, c = x.shape
@@ -38,7 +39,13 @@ class CausalSelfAttention(nn.Module):
         q = q.view(b, t, self.n_heads, self.head_dim).transpose(1, 2)
         k = k.view(b, t, self.n_heads, self.head_dim).transpose(1, 2)
         v = v.view(b, t, self.n_heads, self.head_dim).transpose(1, 2)
-        y = F.scaled_dot_product_attention(q, k, v, attn_mask=self.mask[:t, :t], dropout_p=self.dropout.p if self.training else 0.0)
+
+        # ⚡ Bolt Optimization: is_causal=True uses PyTorch's native FlashAttention implementation
+        y = F.scaled_dot_product_attention(
+            q, k, v,
+            is_causal=True,
+            dropout_p=self.dropout.p if self.training else 0.0
+        )
         y = y.transpose(1, 2).contiguous().view(b, t, c)
         return self.out(y)
 
